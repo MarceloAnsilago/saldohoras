@@ -33,6 +33,33 @@ SERVIDORES = [
 ]
 
 
+def aplicar_mascara_hhmm(chave: str) -> None:
+    valor = st.session_state.get(chave, "")
+    digitos = "".join(caractere for caractere in valor if caractere.isdigit())
+
+    if len(digitos) >= 3:
+        digitos = digitos[-4:]
+        horas = digitos[:-2].zfill(2)
+        minutos = digitos[-2:]
+        st.session_state[chave] = f"{horas}:{minutos}"
+    elif len(digitos) == 0:
+        st.session_state[chave] = ""
+    else:
+        st.session_state[chave] = digitos
+
+
+def eh_hhmm_valido(valor: str) -> bool:
+    if len(valor) != 5 or valor[2] != ":":
+        return False
+
+    horas, minutos = valor.split(":")
+    return horas.isdigit() and minutos.isdigit() and int(minutos) <= 59
+
+
+for chave_hora in ("saldo_horas", "expiram_mes"):
+    st.session_state.setdefault(chave_hora, "00:00")
+
+
 st.set_page_config(
     page_title="Saldo de Horas",
     page_icon=":clock3:",
@@ -51,9 +78,29 @@ with filtro_col1:
 with filtro_col2:
     servidor = st.selectbox("Nome do servidor", SERVIDORES)
 with filtro_col3:
-    saldo_horas = st.text_input("Saldo de horas", value="00:00")
+    saldo_horas = st.text_input(
+        "Saldo de horas",
+        key="saldo_horas",
+        max_chars=5,
+        placeholder="HH:MM",
+        on_change=aplicar_mascara_hhmm,
+        args=("saldo_horas",),
+    )
 with filtro_col4:
-    expiram_mes = st.text_input("Expiram esse mes", value="00:00")
+    expiram_mes = st.text_input(
+        "Expiram esse mes",
+        key="expiram_mes",
+        max_chars=5,
+        placeholder="HH:MM",
+        on_change=aplicar_mascara_hhmm,
+        args=("expiram_mes",),
+    )
+
+if saldo_horas and not eh_hhmm_valido(saldo_horas):
+    st.warning("Preencha o saldo de horas no formato HH:MM.")
+
+if expiram_mes and not eh_hhmm_valido(expiram_mes):
+    st.warning("Preencha as horas que expiram no formato HH:MM.")
 
 st.divider()
 

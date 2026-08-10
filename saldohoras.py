@@ -251,7 +251,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
 
             table {{
                 border-collapse: collapse;
-                font-size: 20px;
+                font-size: 16px;
                 width: 100%;
             }}
 
@@ -260,7 +260,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                 border-bottom: 1px solid #c7cbd1;
                 color: #000000;
                 font-weight: 700;
-                padding: 11px 8px;
+                padding: 9px 6px;
                 text-align: left;
             }}
 
@@ -268,7 +268,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                 border-bottom: 1px solid var(--line);
                 color: #000000;
                 font-weight: 400;
-                padding: 10px 8px;
+                padding: 8px 6px;
                 text-align: left;
             }}
 

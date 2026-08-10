@@ -41,7 +41,7 @@ def aplicar_mascara_hhmm(chave: str) -> None:
     digitos = "".join(caractere for caractere in valor if caractere.isdigit())
 
     if len(digitos) >= 3:
-        digitos = digitos[-4:]
+        digitos = digitos[-5:]
         horas = digitos[:-2].zfill(2)
         minutos = digitos[-2:]
         st.session_state[chave] = f"{horas}:{minutos}"
@@ -52,11 +52,17 @@ def aplicar_mascara_hhmm(chave: str) -> None:
 
 
 def eh_hhmm_valido(valor: str) -> bool:
-    if len(valor) != 5 or valor[2] != ":":
+    if ":" not in valor:
         return False
 
     horas, minutos = valor.split(":")
-    return horas.isdigit() and minutos.isdigit() and int(minutos) <= 59
+    return (
+        2 <= len(horas) <= 3
+        and len(minutos) == 2
+        and horas.isdigit()
+        and minutos.isdigit()
+        and int(minutos) <= 59
+    )
 
 
 def montar_registro() -> dict[str, str]:
@@ -341,8 +347,8 @@ with filtro_col3:
     st.text_input(
         "Saldo de horas",
         key="saldo_horas",
-        max_chars=5,
-        placeholder="HH:MM",
+        max_chars=6,
+        placeholder="HHH:MM",
         on_change=aplicar_mascara_hhmm,
         args=("saldo_horas",),
     )
@@ -350,8 +356,8 @@ with filtro_col4:
     st.text_input(
         "Expiram esse mes",
         key="expiram_mes",
-        max_chars=5,
-        placeholder="HH:MM",
+        max_chars=6,
+        placeholder="HHH:MM",
         on_change=aplicar_mascara_hhmm,
         args=("expiram_mes",),
     )
@@ -360,10 +366,10 @@ saldo_horas = st.session_state["saldo_horas"]
 expiram_mes = st.session_state["expiram_mes"]
 
 if saldo_horas and not eh_hhmm_valido(saldo_horas):
-    st.warning("Preencha o saldo de horas no formato HH:MM.")
+    st.warning("Preencha o saldo de horas no formato HH:MM ou HHH:MM.")
 
 if expiram_mes and not eh_hhmm_valido(expiram_mes):
-    st.warning("Preencha as horas que expiram no formato HH:MM.")
+    st.warning("Preencha as horas que expiram no formato HH:MM ou HHH:MM.")
 
 st.button("Adicionar", type="primary", on_click=adicionar_registro)
 

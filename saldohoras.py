@@ -33,7 +33,7 @@ SERVIDORES = [
     "ROBSON TEOFILO VARGAS",
     "THIAGO DE OLIVEIRA ALVES",
 ]
-COLUNAS_TABELA = ["Mes", "Servidor", "Saldo de horas", "Expiram esse mes"]
+COLUNAS_TABELA = ["Servidor", "Saldo de horas", "Expiram esse mes"]
 
 
 def aplicar_mascara_hhmm(chave: str) -> None:
@@ -61,7 +61,6 @@ def eh_hhmm_valido(valor: str) -> bool:
 
 def montar_registro() -> dict[str, str]:
     return {
-        "Mes": st.session_state["mes"],
         "Servidor": st.session_state["servidor"],
         "Saldo de horas": st.session_state["saldo_horas"],
         "Expiram esse mes": st.session_state["expiram_mes"],
@@ -101,7 +100,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     if not registros:
         return """
             <tr>
-                <td colspan="4" class="empty">Nenhum registro adicionado.</td>
+                <td colspan="3" class="empty">Nenhum registro adicionado.</td>
             </tr>
         """
 
@@ -110,7 +109,6 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
         linhas.append(
             f"""
             <tr>
-                <td>{escape(registro["Mes"])}</td>
                 <td>{escape(registro["Servidor"])}</td>
                 <td>{escape(registro["Saldo de horas"])}</td>
                 <td>{escape(registro["Expiram esse mes"])}</td>
@@ -122,6 +120,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
 
 def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
     linhas = gerar_linhas_relatorio(registros)
+    mes = escape(st.session_state["mes"])
     return f"""
     <!doctype html>
     <html lang="pt-BR">
@@ -290,13 +289,12 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                         <span></span><span></span><span></span>
                         <span></span><span></span><span></span>
                     </span>
-                    Tabela Banco de Horas
+                    Tabela Banco de Horas - {mes}
                 </header>
                 <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Mes</th>
                                 <th>Servidor</th>
                                 <th>Saldo de horas</th>
                                 <th>Expiram esse mes</th>
@@ -384,7 +382,7 @@ st.dataframe(df, use_container_width=True, hide_index=True)
 
 if st.session_state["registros"]:
     opcoes_remocao = [
-        f"{indice + 1} - {registro['Servidor']} - {registro['Mes']}"
+        f"{indice + 1} - {registro['Servidor']}"
         for indice, registro in enumerate(st.session_state["registros"])
     ]
     indice_remocao = st.selectbox("Linha para remover", range(len(opcoes_remocao)), format_func=opcoes_remocao.__getitem__)

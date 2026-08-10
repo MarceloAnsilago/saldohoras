@@ -70,8 +70,15 @@ def horas_para_minutos(valor: str) -> int:
     return int(horas) * 60 + int(minutos)
 
 
-def legenda_folga_sem_ponto(saldo_horas: str) -> str:
-    if eh_hhmm_valido(saldo_horas) and horas_para_minutos(saldo_horas) >= 6 * 60:
+def tem_saldo_para_folga(*valores: str) -> bool:
+    return any(
+        eh_hhmm_valido(valor) and horas_para_minutos(valor) >= 6 * 60
+        for valor in valores
+    )
+
+
+def legenda_folga_sem_ponto(registro: dict[str, str]) -> str:
+    if tem_saldo_para_folga(registro["Saldo ultimo mes"], registro["Saldo de horas"]):
         return "Hab. folga sem ponto"
     return ""
 
@@ -136,7 +143,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
                 <td>{escape(registro["Saldo ultimo mes"])}</td>
                 <td>{escape(registro["Saldo de horas"])}</td>
                 <td>{escape(registro["Expiram esse mes"])}</td>
-                <td>{escape(legenda_folga_sem_ponto(registro["Saldo de horas"]))}</td>
+                <td>{escape(legenda_folga_sem_ponto(registro))}</td>
             </tr>
             """
         )

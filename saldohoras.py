@@ -65,6 +65,17 @@ def eh_hhmm_valido(valor: str) -> bool:
     )
 
 
+def horas_para_minutos(valor: str) -> int:
+    horas, minutos = valor.split(":")
+    return int(horas) * 60 + int(minutos)
+
+
+def legenda_folga_sem_ponto(saldo_horas: str) -> str:
+    if eh_hhmm_valido(saldo_horas) and horas_para_minutos(saldo_horas) >= 6 * 60:
+        return "Hab. folga sem ponto"
+    return ""
+
+
 def montar_registro() -> dict[str, str]:
     return {
         "Servidor": st.session_state["servidor"],
@@ -112,7 +123,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     if not registros:
         return """
             <tr>
-                <td colspan="4" class="empty">Nenhum registro adicionado.</td>
+                <td colspan="5" class="empty">Nenhum registro adicionado.</td>
             </tr>
         """
 
@@ -125,6 +136,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
                 <td>{escape(registro["Saldo ultimo mes"])}</td>
                 <td>{escape(registro["Saldo de horas"])}</td>
                 <td>{escape(registro["Expiram esse mes"])}</td>
+                <td>{escape(legenda_folga_sem_ponto(registro["Saldo de horas"]))}</td>
             </tr>
             """
         )
@@ -312,6 +324,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                                 <th>Saldo ultimo mes</th>
                                 <th>Saldo de horas</th>
                                 <th>Expiram esse mes</th>
+                                <th>Legenda</th>
                             </tr>
                         </thead>
                         <tbody>

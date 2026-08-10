@@ -88,6 +88,13 @@ def adicionar_registro() -> None:
     st.session_state["mensagem_sucesso"] = "Registro adicionado."
 
 
+def remover_registro(indice: int) -> None:
+    if 0 <= indice < len(st.session_state["registros"]):
+        st.session_state["registros"].pop(indice)
+        st.session_state["mensagem_erro"] = ""
+        st.session_state["mensagem_sucesso"] = "Registro removido."
+
+
 for chave_hora in ("saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
@@ -155,6 +162,18 @@ st.subheader("Tabela")
 
 df = pd.DataFrame(st.session_state["registros"], columns=COLUNAS_TABELA)
 st.dataframe(df, use_container_width=True, hide_index=True)
+
+if st.session_state["registros"]:
+    opcoes_remocao = [
+        f"{indice + 1} - {registro['Servidor']} - {registro['Mes']}"
+        for indice, registro in enumerate(st.session_state["registros"])
+    ]
+    indice_remocao = st.selectbox("Linha para remover", range(len(opcoes_remocao)), format_func=opcoes_remocao.__getitem__)
+    st.button(
+        "Remover linha selecionada",
+        on_click=remover_registro,
+        args=(indice_remocao,),
+    )
 
 csv = df.to_csv(index=False).encode("utf-8")
 st.download_button(

@@ -1,10 +1,50 @@
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 
 import pandas as pd
 import streamlit as st
 
 
 JORNADA_PADRAO = timedelta(hours=8)
+MESES = [
+    "Janeiro",
+    "Fevereiro",
+    "Marco",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+]
+SERVIDORES = [
+    "Selecione",
+    "Servidor 1",
+    "Servidor 2",
+    "Servidor 3",
+]
+SALDOS_HORAS = [
+    "00:00",
+    "01:00",
+    "02:00",
+    "04:00",
+    "08:00",
+    "16:00",
+    "24:00",
+    "40:00",
+]
+HORAS_EXPIRAM = [
+    "00:00",
+    "01:00",
+    "02:00",
+    "04:00",
+    "08:00",
+    "16:00",
+    "24:00",
+    "40:00",
+]
 
 
 def para_timedelta(valor: time) -> timedelta:
@@ -32,6 +72,20 @@ st.set_page_config(
 )
 
 st.title("Tabela Banco de Horas")
+
+st.subheader("Filtros")
+
+mes_atual_indice = date.today().month - 1
+filtro_col1, filtro_col2, filtro_col3, filtro_col4 = st.columns(4)
+
+with filtro_col1:
+    mes = st.selectbox("Mes", MESES, index=mes_atual_indice)
+with filtro_col2:
+    servidor = st.selectbox("Nome do servidor", SERVIDORES)
+with filtro_col3:
+    saldo_horas = st.selectbox("Saldo de horas", SALDOS_HORAS)
+with filtro_col4:
+    expiram_mes = st.selectbox("Expiram esse mes", HORAS_EXPIRAM)
 
 with st.sidebar:
     st.header("Jornada")
@@ -66,6 +120,10 @@ st.divider()
 st.subheader("Tabela")
 
 registro = {
+    "Mes": mes,
+    "Servidor": servidor,
+    "Saldo de horas": saldo_horas,
+    "Expiram esse mes": expiram_mes,
     "Data": data.strftime("%d/%m/%Y"),
     "Entrada": entrada.strftime("%H:%M"),
     "Saida almoco": saida_almoco.strftime("%H:%M"),

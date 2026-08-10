@@ -33,7 +33,7 @@ SERVIDORES = [
     "ROBSON TEOFILO VARGAS",
     "THIAGO DE OLIVEIRA ALVES",
 ]
-COLUNAS_TABELA = ["Servidor", "Saldo de horas", "Expiram esse mes"]
+COLUNAS_TABELA = ["Servidor", "Saldo ultimo mes", "Saldo de horas", "Expiram esse mes"]
 
 
 def aplicar_mascara_hhmm(chave: str) -> None:
@@ -68,6 +68,7 @@ def eh_hhmm_valido(valor: str) -> bool:
 def montar_registro() -> dict[str, str]:
     return {
         "Servidor": st.session_state["servidor"],
+        "Saldo ultimo mes": st.session_state["saldo_ultimo_mes"],
         "Saldo de horas": st.session_state["saldo_horas"],
         "Expiram esse mes": st.session_state["expiram_mes"],
     }
@@ -75,6 +76,7 @@ def montar_registro() -> dict[str, str]:
 
 def adicionar_registro() -> None:
     servidor = st.session_state["servidor"]
+    saldo_ultimo_mes = st.session_state["saldo_ultimo_mes"]
     saldo_horas = st.session_state["saldo_horas"]
     expiram_mes = st.session_state["expiram_mes"]
 
@@ -82,12 +84,16 @@ def adicionar_registro() -> None:
         st.session_state["mensagem_erro"] = "Selecione o nome do servidor."
         return
 
+    if not eh_hhmm_valido(saldo_ultimo_mes):
+        st.session_state["mensagem_erro"] = "Preencha o saldo ultimo mes no formato HH:MM ou HHH:MM."
+        return
+
     if not eh_hhmm_valido(saldo_horas):
-        st.session_state["mensagem_erro"] = "Preencha o saldo de horas no formato HH:MM."
+        st.session_state["mensagem_erro"] = "Preencha o saldo de horas no formato HH:MM ou HHH:MM."
         return
 
     if not eh_hhmm_valido(expiram_mes):
-        st.session_state["mensagem_erro"] = "Preencha as horas que expiram no formato HH:MM."
+        st.session_state["mensagem_erro"] = "Preencha as horas que expiram no formato HH:MM ou HHH:MM."
         return
 
     st.session_state["registros"].append(montar_registro())
@@ -106,7 +112,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     if not registros:
         return """
             <tr>
-                <td colspan="3" class="empty">Nenhum registro adicionado.</td>
+                <td colspan="4" class="empty">Nenhum registro adicionado.</td>
             </tr>
         """
 
@@ -116,6 +122,7 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
             f"""
             <tr>
                 <td>{escape(registro["Servidor"])}</td>
+                <td>{escape(registro["Saldo ultimo mes"])}</td>
                 <td>{escape(registro["Saldo de horas"])}</td>
                 <td>{escape(registro["Expiram esse mes"])}</td>
             </tr>
@@ -302,6 +309,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                         <thead>
                             <tr>
                                 <th>Servidor</th>
+                                <th>Saldo ultimo mes</th>
                                 <th>Saldo de horas</th>
                                 <th>Expiram esse mes</th>
                             </tr>
@@ -318,7 +326,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
     """
 
 
-for chave_hora in ("saldo_horas", "expiram_mes"):
+for chave_hora in ("saldo_ultimo_mes", "saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
 st.session_state.setdefault("registros", [])
@@ -337,13 +345,22 @@ st.title("Tabela Banco de Horas")
 st.subheader("Filtros")
 
 mes_atual_indice = date.today().month - 1
-filtro_col1, filtro_col2, filtro_col3, filtro_col4 = st.columns(4)
+filtro_col1, filtro_col2, filtro_col3, filtro_col4, filtro_col5 = st.columns(5)
 
 with filtro_col1:
     st.selectbox("Mes", MESES, index=mes_atual_indice, key="mes")
 with filtro_col2:
     st.selectbox("Nome do servidor", SERVIDORES, key="servidor")
 with filtro_col3:
+    st.text_input(
+        "Saldo ultimo mes",
+        key="saldo_ultimo_mes",
+        max_chars=6,
+        placeholder="HHH:MM",
+        on_change=aplicar_mascara_hhmm,
+        args=("saldo_ultimo_mes",),
+    )
+with filtro_col4:
     st.text_input(
         "Saldo de horas",
         key="saldo_horas",
@@ -352,7 +369,7 @@ with filtro_col3:
         on_change=aplicar_mascara_hhmm,
         args=("saldo_horas",),
     )
-with filtro_col4:
+with filtro_col5:
     st.text_input(
         "Expiram esse mes",
         key="expiram_mes",
@@ -362,8 +379,12 @@ with filtro_col4:
         args=("expiram_mes",),
     )
 
+saldo_ultimo_mes = st.session_state["saldo_ultimo_mes"]
 saldo_horas = st.session_state["saldo_horas"]
 expiram_mes = st.session_state["expiram_mes"]
+
+if saldo_ultimo_mes and not eh_hhmm_valido(saldo_ultimo_mes):
+    st.warning("Preencha o saldo ultimo mes no formato HH:MM ou HHH:MM.")
 
 if saldo_horas and not eh_hhmm_valido(saldo_horas):
     st.warning("Preencha o saldo de horas no formato HH:MM ou HHH:MM.")

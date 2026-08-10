@@ -78,7 +78,7 @@ def tem_saldo_para_folga(*valores: str) -> bool:
 
 
 def legenda_folga_sem_ponto(registro: dict[str, str]) -> str:
-    if tem_saldo_para_folga(registro["Saldo ultimo mes"], registro["Saldo de horas"]):
+    if tem_saldo_para_folga(registro["Saldo ultimo mes"]):
         return "Hab. folga sem ponto"
     return ""
 

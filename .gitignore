@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 .streamlit/secrets.toml
+g_atividades_page1.png

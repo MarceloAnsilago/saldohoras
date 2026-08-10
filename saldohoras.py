@@ -1,7 +1,9 @@
 from datetime import date
+from html import escape
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 MESES = [
@@ -95,6 +97,223 @@ def remover_registro(indice: int) -> None:
         st.session_state["mensagem_sucesso"] = "Registro removido."
 
 
+def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
+    if not registros:
+        return """
+            <tr>
+                <td colspan="4" class="empty">Nenhum registro adicionado.</td>
+            </tr>
+        """
+
+    linhas = []
+    for registro in registros:
+        linhas.append(
+            f"""
+            <tr>
+                <td>{escape(registro["Mes"])}</td>
+                <td>{escape(registro["Servidor"])}</td>
+                <td>{escape(registro["Saldo de horas"])}</td>
+                <td>{escape(registro["Expiram esse mes"])}</td>
+            </tr>
+            """
+        )
+    return "\n".join(linhas)
+
+
+def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
+    linhas = gerar_linhas_relatorio(registros)
+    return f"""
+    <!doctype html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <style>
+            :root {{
+                --border: #d1d5db;
+                --line: #d8dde3;
+                --header: #f5f6f8;
+                --stripe: #f1f1f1;
+                --text: #111827;
+            }}
+
+            * {{
+                box-sizing: border-box;
+            }}
+
+            body {{
+                margin: 0;
+                padding: 24px;
+                background: #f4f6f8;
+                color: var(--text);
+                font-family: "Segoe UI", Arial, sans-serif;
+            }}
+
+            .actions {{
+                margin: 0 0 12px;
+            }}
+
+            .print-button {{
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                background: #ffffff;
+                color: #111827;
+                cursor: pointer;
+                font-family: "Segoe UI", Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 8px 14px;
+            }}
+
+            .sheet {{
+                background: #f4f6f8;
+                min-height: 790px;
+                padding: 26px 0;
+            }}
+
+            .report-card {{
+                width: 100%;
+                background: #ffffff;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                box-shadow: 0 2px 5px rgba(17, 24, 39, 0.16);
+                overflow: hidden;
+            }}
+
+            .report-title {{
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                font-size: 20px;
+                font-weight: 700;
+                gap: 8px;
+                line-height: 1.2;
+                padding: 15px 24px;
+            }}
+
+            .table-icon {{
+                border: 2px solid #1f2933;
+                border-radius: 2px;
+                display: inline-grid;
+                grid-template-columns: repeat(3, 6px);
+                grid-template-rows: repeat(3, 6px);
+                height: 22px;
+                overflow: hidden;
+                width: 22px;
+            }}
+
+            .table-icon span {{
+                border-bottom: 1px solid #1f2933;
+                border-right: 1px solid #1f2933;
+            }}
+
+            .table-icon span:nth-child(3n) {{
+                border-right: 0;
+            }}
+
+            .table-icon span:nth-last-child(-n+3) {{
+                border-bottom: 0;
+            }}
+
+            .table-wrap {{
+                padding: 24px;
+            }}
+
+            table {{
+                border-collapse: collapse;
+                font-size: 20px;
+                width: 100%;
+            }}
+
+            th {{
+                background: var(--header);
+                border-bottom: 1px solid #c7cbd1;
+                color: #000000;
+                font-weight: 700;
+                padding: 11px 8px;
+                text-align: left;
+            }}
+
+            td {{
+                border-bottom: 1px solid var(--line);
+                color: #000000;
+                font-weight: 400;
+                padding: 10px 8px;
+                text-align: left;
+            }}
+
+            tbody tr:nth-child(odd) td {{
+                background: var(--stripe);
+            }}
+
+            .empty {{
+                color: #4b5563;
+                font-size: 16px;
+                text-align: center;
+            }}
+
+            @media print {{
+                body {{
+                    background: #ffffff;
+                    padding: 0;
+                }}
+
+                .actions {{
+                    display: none;
+                }}
+
+                .sheet {{
+                    background: #f4f6f8;
+                    min-height: 100vh;
+                    padding: 26px 24px;
+                }}
+
+                .report-card {{
+                    box-shadow: 0 2px 5px rgba(17, 24, 39, 0.16);
+                }}
+
+                @page {{
+                    margin: 12mm;
+                    size: A4 landscape;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="actions">
+            <button class="print-button" onclick="window.print()">Imprimir relatorio</button>
+        </div>
+        <main class="sheet">
+            <section class="report-card">
+                <header class="report-title">
+                    <span class="table-icon" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </span>
+                    Tabela Banco de Horas
+                </header>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th>Servidor</th>
+                                <th>Saldo de horas</th>
+                                <th>Expiram esse mes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {linhas}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </body>
+    </html>
+    """
+
+
 for chave_hora in ("saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
@@ -181,4 +400,11 @@ st.download_button(
     data=csv,
     file_name="banco_de_horas.csv",
     mime="text/csv",
+)
+
+st.subheader("Relatorio para impressao")
+components.html(
+    gerar_html_relatorio(st.session_state["registros"]),
+    height=760,
+    scrolling=True,
 )

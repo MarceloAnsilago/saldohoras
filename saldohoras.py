@@ -373,6 +373,15 @@ with filtro_col2:
     st.selectbox("Nome do servidor", SERVIDORES, key="servidor")
 with filtro_col3:
     st.text_input(
+        "Expiram esse mes",
+        key="expiram_mes",
+        max_chars=6,
+        placeholder="HHH:MM",
+        on_change=aplicar_mascara_hhmm,
+        args=("expiram_mes",),
+    )
+with filtro_col4:
+    st.text_input(
         "Saldo ultimo mes",
         key="saldo_ultimo_mes",
         max_chars=6,
@@ -380,7 +389,7 @@ with filtro_col3:
         on_change=aplicar_mascara_hhmm,
         args=("saldo_ultimo_mes",),
     )
-with filtro_col4:
+with filtro_col5:
     st.text_input(
         "Saldo de horas",
         key="saldo_horas",
@@ -388,15 +397,6 @@ with filtro_col4:
         placeholder="HHH:MM",
         on_change=aplicar_mascara_hhmm,
         args=("saldo_horas",),
-    )
-with filtro_col5:
-    st.text_input(
-        "Expiram esse mes",
-        key="expiram_mes",
-        max_chars=6,
-        placeholder="HHH:MM",
-        on_change=aplicar_mascara_hhmm,
-        args=("expiram_mes",),
     )
 
 saldo_ultimo_mes = st.session_state["saldo_ultimo_mes"]

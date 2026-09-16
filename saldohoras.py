@@ -553,12 +553,17 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 line-height: 1;
                 min-width: 24px;
                 padding: 0 6px;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
             }}
 
             .square.filled {{
                 background: #111827;
                 border-color: #111827;
+                box-shadow: inset 0 0 0 999px #111827;
                 color: #ffffff;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
             }}
 
             .empty {{
@@ -568,6 +573,11 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
             }}
 
             @media print {{
+                * {{
+                    print-color-adjust: exact;
+                    -webkit-print-color-adjust: exact;
+                }}
+
                 body {{
                     background: #ffffff;
                     padding: 0;

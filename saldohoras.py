@@ -393,6 +393,12 @@ def adicionar_mapa_plantao() -> None:
         st.session_state["mensagem_erro_mapa_plantao"] = "A data final deve ser igual ou posterior a data inicial."
         return
 
+    if data_inicial_col2 <= data_final_col1:
+        st.session_state["mensagem_erro_mapa_plantao"] = (
+            "O segundo periodo deve iniciar depois do primeiro periodo."
+        )
+        return
+
     st.session_state["mapas_plantao"].append(
         {
             "Equipe": st.session_state["equipe_mapa_plantao"],

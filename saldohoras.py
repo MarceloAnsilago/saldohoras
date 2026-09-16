@@ -358,12 +358,12 @@ def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
         (
             st.session_state["data_inicial_mapa_plantao_col1"],
             st.session_state["data_final_mapa_plantao_col1"],
-            st.session_state["trabalha_mapa_plantao_col1"] == "Sim",
+            st.session_state["trabalha_mapa_plantao"] == "Sim",
         ),
         (
             st.session_state["data_inicial_mapa_plantao_col2"],
             st.session_state["data_final_mapa_plantao_col2"],
-            st.session_state["trabalha_mapa_plantao_col2"] == "Sim",
+            st.session_state["trabalha_mapa_plantao"] == "Sim",
         ),
     ]
 
@@ -819,21 +819,15 @@ with aba_mapa_plantao:
     opcoes_col1, opcoes_col2 = st.columns(2)
 
     with opcoes_col1:
-        st.radio(
-            "Trabalha periodo 1",
-            ["Sim", "Nao"],
-            horizontal=True,
-            key="trabalha_mapa_plantao_col1",
-        )
-        st.radio(
-            "Trabalha periodo 2",
-            ["Sim", "Nao"],
-            horizontal=True,
-            key="trabalha_mapa_plantao_col2",
-        )
+        st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
 
     with opcoes_col2:
-        st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
+        st.radio(
+            "Trabalha",
+            ["Sim", "Nao"],
+            horizontal=True,
+            key="trabalha_mapa_plantao",
+        )
 
     st.button(
         "Adicionar",

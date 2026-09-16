@@ -473,11 +473,23 @@ with aba_mapa_plantao:
         with st.container(border=True):
             st.date_input("Data inicial", key="data_inicial_mapa_plantao_col1")
             st.date_input("Data final", key="data_final_mapa_plantao_col1")
+            st.radio(
+                "Trabalha",
+                ["Sim", "Nao"],
+                horizontal=True,
+                key="trabalha_mapa_plantao_col1",
+            )
 
     with mapa_col2:
         with st.container(border=True):
             st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
             st.date_input("Data final", key="data_final_mapa_plantao_col2")
+            st.radio(
+                "Trabalha",
+                ["Sim", "Nao"],
+                horizontal=True,
+                key="trabalha_mapa_plantao_col2",
+            )
 
     st.button("Adicionar", type="primary", key="adicionar_mapa_plantao")
 

@@ -173,14 +173,15 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
 
             body {{
                 margin: 0;
-                padding: 24px;
-                background: #f4f6f8;
+                padding: 0;
+                background: #f1f3f5;
                 color: var(--text);
                 font-family: "Segoe UI", Arial, sans-serif;
             }}
 
             .actions {{
-                margin: 0 0 12px;
+                margin: 12px 0 12px;
+                padding: 0 2px;
             }}
 
             .print-button {{
@@ -413,14 +414,11 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     for mapa in mapas:
         dias = []
         for dia in mapa["Dias"]:
-            data_formatada = date.fromisoformat(dia["Data"]).strftime("%d/%m")
+            data_formatada = str(date.fromisoformat(dia["Data"]).day)
             classe_quadrado = "square filled" if dia["Trabalha"] else "square"
             dias.append(
                 f"""
-                <div class="day">
-                    <span class="{classe_quadrado}"></span>
-                    <span class="day-label">{escape(data_formatada)}</span>
-                </div>
+                <span class="{classe_quadrado}">{escape(data_formatada)}</span>
                 """
             )
 
@@ -461,14 +459,15 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
 
             body {{
                 margin: 0;
-                padding: 24px;
-                background: #f4f6f8;
+                padding: 0;
+                background: #f1f3f5;
                 color: var(--text);
                 font-family: "Segoe UI", Arial, sans-serif;
             }}
 
             .actions {{
-                margin: 0 0 12px;
+                margin: 12px 0 12px;
+                padding: 0 2px;
             }}
 
             .print-button {{
@@ -484,86 +483,82 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
             }}
 
             .sheet {{
-                background: #f4f6f8;
+                background: #f1f3f5;
                 min-height: 790px;
-                padding: 26px 0;
+                padding: 0;
             }}
 
             .report-card {{
                 width: 100%;
-                background: #ffffff;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                box-shadow: 0 2px 5px rgba(17, 24, 39, 0.16);
+                background: transparent;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
                 overflow: hidden;
             }}
 
             .report-title {{
-                border-bottom: 1px solid var(--border);
-                font-size: 20px;
-                font-weight: 700;
-                line-height: 1.2;
-                padding: 15px 24px;
+                display: none;
             }}
 
             .table-wrap {{
-                padding: 24px;
+                padding: 2px 0 0;
             }}
 
             table {{
                 border-collapse: collapse;
-                font-size: 15px;
+                background: #ffffff;
+                font-size: 14px;
                 width: 100%;
             }}
 
             th {{
-                background: var(--header);
-                border-bottom: 1px solid #c7cbd1;
+                background: #d9d9d9;
+                border: 1px solid #aeb4bb;
                 color: #000000;
                 font-weight: 700;
-                padding: 9px 8px;
-                text-align: left;
+                padding: 6px 8px;
+                text-align: center;
             }}
 
             td {{
-                border-bottom: 1px solid var(--line);
+                border: 1px solid #d6dbe0;
                 color: #000000;
-                padding: 10px 8px;
+                padding: 4px 4px;
                 text-align: left;
-                vertical-align: top;
+                vertical-align: middle;
             }}
 
             .server-name {{
-                font-weight: 700;
-                width: 260px;
+                font-weight: 400;
+                width: 350px;
             }}
 
             .days-grid {{
                 display: flex;
                 flex-wrap: wrap;
-                gap: 8px 10px;
-            }}
-
-            .day {{
-                align-items: center;
-                display: inline-flex;
                 gap: 4px;
-                white-space: nowrap;
             }}
 
             .square {{
-                border: 2px solid #111827;
-                display: inline-block;
-                height: 15px;
-                width: 15px;
+                align-items: center;
+                background: #ffffff;
+                border: 1px solid #d5dce3;
+                border-radius: 5px;
+                color: #4b5563;
+                display: inline-flex;
+                font-size: 12px;
+                height: 25px;
+                justify-content: center;
+                line-height: 1;
+                min-width: 24px;
+                padding: 0 6px;
             }}
 
             .square.filled {{
                 background: #111827;
-            }}
-
-            .day-label {{
-                font-size: 12px;
+                border-color: #111827;
+                color: #ffffff;
             }}
 
             .empty {{
@@ -583,9 +578,9 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 }}
 
                 .sheet {{
-                    background: #f4f6f8;
+                    background: #f1f3f5;
                     min-height: 100vh;
-                    padding: 26px 24px;
+                    padding: 0;
                 }}
 
                 @page {{
@@ -607,7 +602,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                         <thead>
                             <tr>
                                 <th>Servidor</th>
-                                <th>Dias</th>
+                                <th>Dias de Descanso</th>
                             </tr>
                         </thead>
                         <tbody>

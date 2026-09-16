@@ -34,13 +34,7 @@ SERVIDORES = [
     "THIAGO DE OLIVEIRA ALVES",
 ]
 EQUIPES = ["Equipe 1", "Equipe 2"]
-COLUNAS_TABELA = [
-    "Equipe",
-    "Servidor",
-    "Saldo ultimo mes",
-    "Saldo de horas",
-    "Expiram esse mes",
-]
+COLUNAS_TABELA = ["Servidor", "Saldo ultimo mes", "Saldo de horas", "Expiram esse mes"]
 
 
 def aplicar_mascara_hhmm(chave: str) -> None:
@@ -92,7 +86,6 @@ def legenda_folga_sem_ponto(registro: dict[str, str]) -> str:
 
 def montar_registro() -> dict[str, str]:
     return {
-        "Equipe": st.session_state["equipe"],
         "Servidor": st.session_state["servidor"],
         "Saldo ultimo mes": st.session_state["saldo_ultimo_mes"],
         "Saldo de horas": st.session_state["saldo_horas"],
@@ -134,27 +127,16 @@ def remover_registro(indice: int) -> None:
         st.session_state["mensagem_sucesso"] = "Registro removido."
 
 
-def normalizar_registro(registro: dict[str, str]) -> dict[str, str]:
-    return {
-        "Equipe": registro.get("Equipe", "Equipe 1"),
-        "Servidor": registro.get("Servidor", ""),
-        "Saldo ultimo mes": registro.get("Saldo ultimo mes", ""),
-        "Saldo de horas": registro.get("Saldo de horas", ""),
-        "Expiram esse mes": registro.get("Expiram esse mes", ""),
-    }
-
-
 def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     if not registros:
         return """
             <tr>
-                <td colspan="5" class="empty">Nenhum registro adicionado nesta equipe.</td>
+                <td colspan="5" class="empty">Nenhum registro adicionado.</td>
             </tr>
         """
 
     linhas = []
     for registro in registros:
-        registro = normalizar_registro(registro)
         linhas.append(
             f"""
             <tr>
@@ -169,43 +151,8 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     return "\n".join(linhas)
 
 
-def gerar_tabela_equipe_relatorio(equipe: str, registros: list[dict[str, str]]) -> str:
-    linhas = gerar_linhas_relatorio(registros)
-    return f"""
-        <section class="team-section">
-            <h2>{escape(equipe)}</h2>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Servidor</th>
-                            <th>Saldo ultimo mes</th>
-                            <th>Saldo de horas</th>
-                            <th>Expiram esse mes</th>
-                            <th>Legenda</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {linhas}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    """
-
-
 def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
-    tabelas = "\n".join(
-        gerar_tabela_equipe_relatorio(
-            equipe,
-            [
-                registro
-                for registro in registros
-                if normalizar_registro(registro)["Equipe"] == equipe
-            ],
-        )
-        for equipe in EQUIPES
-    )
+    linhas = gerar_linhas_relatorio(registros)
     mes = escape(st.session_state["mes"])
     return f"""
     <!doctype html>
@@ -301,13 +248,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
             }}
 
             .table-wrap {{
-                padding: 0 24px 24px;
-            }}
-
-            .team-section h2 {{
-                color: #111827;
-                font-size: 18px;
-                margin: 22px 24px 10px;
+                padding: 24px;
             }}
 
             table {{
@@ -384,7 +325,22 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                     </span>
                     Tabela Banco de Horas - {mes}
                 </header>
-                {tabelas}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Servidor</th>
+                                <th>Saldo ultimo mes</th>
+                                <th>Saldo de horas</th>
+                                <th>Expiram esse mes</th>
+                                <th>Legenda</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {linhas}
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </main>
     </body>
@@ -439,6 +395,7 @@ def adicionar_mapa_plantao() -> None:
 
     st.session_state["mapas_plantao"].append(
         {
+            "Equipe": st.session_state["equipe_mapa_plantao"],
             "Servidor": servidor,
             "Dias": montar_dias_mapa_plantao(),
         }
@@ -454,16 +411,25 @@ def remover_mapa_plantao(indice: int) -> None:
         st.session_state["mensagem_sucesso_mapa_plantao"] = "Mapa removido."
 
 
+def normalizar_mapa_plantao(mapa: dict[str, object]) -> dict[str, object]:
+    return {
+        "Equipe": mapa.get("Equipe", "Equipe 1"),
+        "Servidor": mapa.get("Servidor", ""),
+        "Dias": mapa.get("Dias", []),
+    }
+
+
 def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     if not mapas:
         return """
             <tr>
-                <td colspan="2" class="empty">Nenhum mapa adicionado.</td>
+                <td colspan="2" class="empty">Nenhum mapa adicionado nesta equipe.</td>
             </tr>
         """
 
     linhas = []
     for mapa in mapas:
+        mapa = normalizar_mapa_plantao(mapa)
         dias = []
         for dia in mapa["Dias"]:
             data_formatada = str(date.fromisoformat(dia["Data"]).day)
@@ -490,8 +456,40 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     return "\n".join(linhas)
 
 
-def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
+def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]) -> str:
     linhas = gerar_linhas_mapa_plantao(mapas)
+    return f"""
+        <section class="team-section">
+            <h2>{escape(equipe)}</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Servidor</th>
+                            <th>Dias de Descanso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {linhas}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    """
+
+
+def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
+    tabelas = "\n".join(
+        gerar_tabela_equipe_mapa_plantao(
+            equipe,
+            [
+                mapa
+                for mapa in mapas
+                if normalizar_mapa_plantao(mapa)["Equipe"] == equipe
+            ],
+        )
+        for equipe in EQUIPES
+    )
     return f"""
     <!doctype html>
     <html lang="pt-BR">
@@ -555,6 +553,20 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
 
             .table-wrap {{
                 padding: 2px 0 0;
+            }}
+
+            .team-section {{
+                margin-bottom: 18px;
+            }}
+
+            .team-section h2 {{
+                background: #d9d9d9;
+                border: 1px solid #aeb4bb;
+                border-bottom: 0;
+                color: #000000;
+                font-size: 15px;
+                margin: 0;
+                padding: 7px 8px;
             }}
 
             table {{
@@ -659,19 +671,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
         <main class="sheet">
             <section class="report-card">
                 <header class="report-title">Mapa de Plantao</header>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Servidor</th>
-                                <th>Dias de Descanso</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {linhas}
-                        </tbody>
-                    </table>
-                </div>
+                {tabelas}
             </section>
         </main>
     </body>
@@ -683,10 +683,10 @@ for chave_hora in ("saldo_ultimo_mes", "saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
 st.session_state.setdefault("registros", [])
-st.session_state.setdefault("equipe", EQUIPES[0])
 st.session_state.setdefault("mensagem_erro", "")
 st.session_state.setdefault("mensagem_sucesso", "")
 st.session_state.setdefault("mapas_plantao", [])
+st.session_state.setdefault("equipe_mapa_plantao", EQUIPES[0])
 st.session_state.setdefault("mensagem_erro_mapa_plantao", "")
 st.session_state.setdefault("mensagem_sucesso_mapa_plantao", "")
 
@@ -754,7 +754,6 @@ with aba_banco_horas:
     if expiram_mes and not eh_hhmm_valido(expiram_mes):
         st.warning("Preencha as horas que expiram no formato HH:MM ou HHH:MM.")
 
-    st.selectbox("Equipe", EQUIPES, key="equipe")
     st.button("Adicionar", type="primary", on_click=adicionar_registro)
 
     if st.session_state["mensagem_erro"]:
@@ -767,22 +766,12 @@ with aba_banco_horas:
 
     st.subheader("Tabela")
 
-    registros_normalizados = [
-        normalizar_registro(registro) for registro in st.session_state["registros"]
-    ]
-    df = pd.DataFrame(registros_normalizados, columns=COLUNAS_TABELA)
-
-    for equipe in EQUIPES:
-        st.markdown(f"**{equipe}**")
-        df_equipe = df[df["Equipe"] == equipe].drop(columns=["Equipe"])
-        st.dataframe(df_equipe, use_container_width=True, hide_index=True)
+    df = pd.DataFrame(st.session_state["registros"], columns=COLUNAS_TABELA)
+    st.dataframe(df, use_container_width=True, hide_index=True)
 
     if st.session_state["registros"]:
         opcoes_remocao = [
-            (
-                f"{indice + 1} - {normalizar_registro(registro)['Equipe']} - "
-                f"{normalizar_registro(registro)['Servidor']}"
-            )
+            f"{indice + 1} - {registro['Servidor']}"
             for indice, registro in enumerate(st.session_state["registros"])
         ]
         indice_remocao = st.selectbox(
@@ -839,6 +828,7 @@ with aba_mapa_plantao:
                 key="trabalha_mapa_plantao_col2",
             )
 
+    st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
     st.button(
         "Adicionar",
         type="primary",
@@ -854,7 +844,10 @@ with aba_mapa_plantao:
 
     if st.session_state["mapas_plantao"]:
         opcoes_remocao_mapa = [
-            f"{indice + 1} - {mapa['Servidor']}"
+            (
+                f"{indice + 1} - {normalizar_mapa_plantao(mapa)['Equipe']} - "
+                f"{normalizar_mapa_plantao(mapa)['Servidor']}"
+            )
             for indice, mapa in enumerate(st.session_state["mapas_plantao"])
         ]
         indice_remocao_mapa = st.selectbox(

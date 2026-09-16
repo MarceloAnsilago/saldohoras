@@ -353,17 +353,24 @@ def listar_datas(inicio: date, fim: date) -> list[date]:
     return [inicio + timedelta(days=indice) for indice in range(quantidade_dias)]
 
 
+def equipe_trabalha_no_periodo(equipe: str, periodo: int) -> bool:
+    return (equipe == "Equipe 1" and periodo == 1) or (
+        equipe == "Equipe 2" and periodo == 2
+    )
+
+
 def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
+    equipe = st.session_state["equipe_mapa_plantao"]
     periodos = [
         (
             st.session_state["data_inicial_mapa_plantao_col1"],
             st.session_state["data_final_mapa_plantao_col1"],
-            st.session_state["trabalha_mapa_plantao"] == "Sim",
+            equipe_trabalha_no_periodo(equipe, 1),
         ),
         (
             st.session_state["data_inicial_mapa_plantao_col2"],
             st.session_state["data_final_mapa_plantao_col2"],
-            st.session_state["trabalha_mapa_plantao"] == "Sim",
+            equipe_trabalha_no_periodo(equipe, 2),
         ),
     ]
 
@@ -824,18 +831,11 @@ with aba_mapa_plantao:
             st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
             st.date_input("Data final", key="data_final_mapa_plantao_col2")
 
-    opcoes_col1, opcoes_col2 = st.columns(2)
-
-    with opcoes_col1:
-        st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
-
-    with opcoes_col2:
-        st.radio(
-            "Trabalha",
-            ["Sim", "Nao"],
-            horizontal=True,
-            key="trabalha_mapa_plantao",
-        )
+    st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
+    if st.session_state["equipe_mapa_plantao"] == "Equipe 1":
+        st.caption("Primeiro periodo: trabalha | Segundo periodo: folga")
+    else:
+        st.caption("Primeiro periodo: folga | Segundo periodo: trabalha")
 
     st.button(
         "Adicionar",

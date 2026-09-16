@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from html import escape
 
 import pandas as pd
@@ -346,12 +346,291 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
     """
 
 
+def listar_datas(inicio: date, fim: date) -> list[date]:
+    quantidade_dias = (fim - inicio).days + 1
+    return [inicio + timedelta(days=indice) for indice in range(quantidade_dias)]
+
+
+def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
+    periodos = [
+        (
+            st.session_state["data_inicial_mapa_plantao_col1"],
+            st.session_state["data_final_mapa_plantao_col1"],
+            st.session_state["trabalha_mapa_plantao_col1"] == "Sim",
+        ),
+        (
+            st.session_state["data_inicial_mapa_plantao_col2"],
+            st.session_state["data_final_mapa_plantao_col2"],
+            st.session_state["trabalha_mapa_plantao_col2"] == "Sim",
+        ),
+    ]
+
+    dias_por_data = {}
+    for inicio, fim, trabalha in periodos:
+        for dia in listar_datas(inicio, fim):
+            dias_por_data[dia.isoformat()] = trabalha
+
+    return [
+        {"Data": data, "Trabalha": trabalha}
+        for data, trabalha in sorted(dias_por_data.items())
+    ]
+
+
+def adicionar_mapa_plantao() -> None:
+    servidor = st.session_state["servidor_mapa_plantao"]
+    data_inicial_col1 = st.session_state["data_inicial_mapa_plantao_col1"]
+    data_final_col1 = st.session_state["data_final_mapa_plantao_col1"]
+    data_inicial_col2 = st.session_state["data_inicial_mapa_plantao_col2"]
+    data_final_col2 = st.session_state["data_final_mapa_plantao_col2"]
+
+    if servidor == "Selecione":
+        st.session_state["mensagem_erro_mapa_plantao"] = "Selecione o nome do servidor."
+        return
+
+    if data_final_col1 < data_inicial_col1 or data_final_col2 < data_inicial_col2:
+        st.session_state["mensagem_erro_mapa_plantao"] = "A data final deve ser igual ou posterior a data inicial."
+        return
+
+    st.session_state["mapas_plantao"].append(
+        {
+            "Servidor": servidor,
+            "Dias": montar_dias_mapa_plantao(),
+        }
+    )
+    st.session_state["mensagem_erro_mapa_plantao"] = ""
+    st.session_state["mensagem_sucesso_mapa_plantao"] = "Mapa adicionado."
+
+
+def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
+    if not mapas:
+        return """
+            <tr>
+                <td colspan="2" class="empty">Nenhum mapa adicionado.</td>
+            </tr>
+        """
+
+    linhas = []
+    for mapa in mapas:
+        dias = []
+        for dia in mapa["Dias"]:
+            data_formatada = date.fromisoformat(dia["Data"]).strftime("%d/%m")
+            classe_quadrado = "square filled" if dia["Trabalha"] else "square"
+            dias.append(
+                f"""
+                <div class="day">
+                    <span class="{classe_quadrado}"></span>
+                    <span class="day-label">{escape(data_formatada)}</span>
+                </div>
+                """
+            )
+
+        linhas.append(
+            f"""
+            <tr>
+                <td class="server-name">{escape(mapa["Servidor"])}</td>
+                <td>
+                    <div class="days-grid">
+                        {"".join(dias)}
+                    </div>
+                </td>
+            </tr>
+            """
+        )
+
+    return "\n".join(linhas)
+
+
+def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
+    linhas = gerar_linhas_mapa_plantao(mapas)
+    return f"""
+    <!doctype html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <style>
+            :root {{
+                --border: #d1d5db;
+                --line: #d8dde3;
+                --header: #f5f6f8;
+                --text: #111827;
+            }}
+
+            * {{
+                box-sizing: border-box;
+            }}
+
+            body {{
+                margin: 0;
+                padding: 24px;
+                background: #f4f6f8;
+                color: var(--text);
+                font-family: "Segoe UI", Arial, sans-serif;
+            }}
+
+            .actions {{
+                margin: 0 0 12px;
+            }}
+
+            .print-button {{
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                background: #ffffff;
+                color: #111827;
+                cursor: pointer;
+                font-family: "Segoe UI", Arial, sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 8px 14px;
+            }}
+
+            .sheet {{
+                background: #f4f6f8;
+                min-height: 790px;
+                padding: 26px 0;
+            }}
+
+            .report-card {{
+                width: 100%;
+                background: #ffffff;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                box-shadow: 0 2px 5px rgba(17, 24, 39, 0.16);
+                overflow: hidden;
+            }}
+
+            .report-title {{
+                border-bottom: 1px solid var(--border);
+                font-size: 20px;
+                font-weight: 700;
+                line-height: 1.2;
+                padding: 15px 24px;
+            }}
+
+            .table-wrap {{
+                padding: 24px;
+            }}
+
+            table {{
+                border-collapse: collapse;
+                font-size: 15px;
+                width: 100%;
+            }}
+
+            th {{
+                background: var(--header);
+                border-bottom: 1px solid #c7cbd1;
+                color: #000000;
+                font-weight: 700;
+                padding: 9px 8px;
+                text-align: left;
+            }}
+
+            td {{
+                border-bottom: 1px solid var(--line);
+                color: #000000;
+                padding: 10px 8px;
+                text-align: left;
+                vertical-align: top;
+            }}
+
+            .server-name {{
+                font-weight: 700;
+                width: 260px;
+            }}
+
+            .days-grid {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 10px;
+            }}
+
+            .day {{
+                align-items: center;
+                display: inline-flex;
+                gap: 4px;
+                white-space: nowrap;
+            }}
+
+            .square {{
+                border: 2px solid #111827;
+                display: inline-block;
+                height: 15px;
+                width: 15px;
+            }}
+
+            .square.filled {{
+                background: #111827;
+            }}
+
+            .day-label {{
+                font-size: 12px;
+            }}
+
+            .empty {{
+                color: #4b5563;
+                font-size: 16px;
+                text-align: center;
+            }}
+
+            @media print {{
+                body {{
+                    background: #ffffff;
+                    padding: 0;
+                }}
+
+                .actions {{
+                    display: none;
+                }}
+
+                .sheet {{
+                    background: #f4f6f8;
+                    min-height: 100vh;
+                    padding: 26px 24px;
+                }}
+
+                @page {{
+                    margin: 12mm;
+                    size: A4 landscape;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="actions">
+            <button class="print-button" onclick="window.print()">Imprimir mapa</button>
+        </div>
+        <main class="sheet">
+            <section class="report-card">
+                <header class="report-title">Mapa de Plantao</header>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Servidor</th>
+                                <th>Dias</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {linhas}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </body>
+    </html>
+    """
+
+
 for chave_hora in ("saldo_ultimo_mes", "saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
 st.session_state.setdefault("registros", [])
 st.session_state.setdefault("mensagem_erro", "")
 st.session_state.setdefault("mensagem_sucesso", "")
+st.session_state.setdefault("mapas_plantao", [])
+st.session_state.setdefault("mensagem_erro_mapa_plantao", "")
+st.session_state.setdefault("mensagem_sucesso_mapa_plantao", "")
 
 
 st.set_page_config(
@@ -491,6 +770,24 @@ with aba_mapa_plantao:
                 key="trabalha_mapa_plantao_col2",
             )
 
-    st.button("Adicionar", type="primary", key="adicionar_mapa_plantao")
+    st.button(
+        "Adicionar",
+        type="primary",
+        key="adicionar_mapa_plantao",
+        on_click=adicionar_mapa_plantao,
+    )
 
-    st.info("Aba criada para a proxima implementacao.")
+    if st.session_state["mensagem_erro_mapa_plantao"]:
+        st.error(st.session_state["mensagem_erro_mapa_plantao"])
+
+    if st.session_state["mensagem_sucesso_mapa_plantao"]:
+        st.success(st.session_state["mensagem_sucesso_mapa_plantao"])
+
+    st.divider()
+
+    st.subheader("Mapa para impressao")
+    components.html(
+        gerar_html_mapa_plantao(st.session_state["mapas_plantao"]),
+        height=760,
+        scrolling=True,
+    )

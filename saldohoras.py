@@ -362,94 +362,107 @@ st.set_page_config(
 
 st.title("Tabela Banco de Horas")
 
-st.subheader("Filtros")
-
-mes_atual_indice = date.today().month - 1
-filtro_col1, filtro_col2, filtro_col3, filtro_col4, filtro_col5 = st.columns(5)
-
-with filtro_col1:
-    st.selectbox("Mes", MESES, index=mes_atual_indice, key="mes")
-with filtro_col2:
-    st.selectbox("Nome do servidor", SERVIDORES, key="servidor")
-with filtro_col3:
-    st.text_input(
-        "Saldo ultimo mes",
-        key="saldo_ultimo_mes",
-        max_chars=6,
-        placeholder="HHH:MM",
-        on_change=aplicar_mascara_hhmm,
-        args=("saldo_ultimo_mes",),
-    )
-with filtro_col4:
-    st.text_input(
-        "Expiram esse mes",
-        key="expiram_mes",
-        max_chars=6,
-        placeholder="HHH:MM",
-        on_change=aplicar_mascara_hhmm,
-        args=("expiram_mes",),
-    )
-with filtro_col5:
-    st.text_input(
-        "Saldo de horas",
-        key="saldo_horas",
-        max_chars=6,
-        placeholder="HHH:MM",
-        on_change=aplicar_mascara_hhmm,
-        args=("saldo_horas",),
-    )
-
-saldo_ultimo_mes = st.session_state["saldo_ultimo_mes"]
-saldo_horas = st.session_state["saldo_horas"]
-expiram_mes = st.session_state["expiram_mes"]
-
-if saldo_ultimo_mes and not eh_hhmm_valido(saldo_ultimo_mes):
-    st.warning("Preencha o saldo ultimo mes no formato HH:MM ou HHH:MM.")
-
-if saldo_horas and not eh_hhmm_valido(saldo_horas):
-    st.warning("Preencha o saldo de horas no formato HH:MM ou HHH:MM.")
-
-if expiram_mes and not eh_hhmm_valido(expiram_mes):
-    st.warning("Preencha as horas que expiram no formato HH:MM ou HHH:MM.")
-
-st.button("Adicionar", type="primary", on_click=adicionar_registro)
-
-if st.session_state["mensagem_erro"]:
-    st.error(st.session_state["mensagem_erro"])
-
-if st.session_state["mensagem_sucesso"]:
-    st.success(st.session_state["mensagem_sucesso"])
-
-st.divider()
-
-st.subheader("Tabela")
-
-df = pd.DataFrame(st.session_state["registros"], columns=COLUNAS_TABELA)
-st.dataframe(df, use_container_width=True, hide_index=True)
-
-if st.session_state["registros"]:
-    opcoes_remocao = [
-        f"{indice + 1} - {registro['Servidor']}"
-        for indice, registro in enumerate(st.session_state["registros"])
-    ]
-    indice_remocao = st.selectbox("Linha para remover", range(len(opcoes_remocao)), format_func=opcoes_remocao.__getitem__)
-    st.button(
-        "Remover linha selecionada",
-        on_click=remover_registro,
-        args=(indice_remocao,),
-    )
-
-csv = df.to_csv(index=False).encode("utf-8")
-st.download_button(
-    "Baixar CSV",
-    data=csv,
-    file_name="banco_de_horas.csv",
-    mime="text/csv",
+aba_banco_horas, aba_mapa_plantao = st.tabs(
+    ["Tabela Banco de Horas", "Mapa de Plantao"]
 )
 
-st.subheader("Relatorio para impressao")
-components.html(
-    gerar_html_relatorio(st.session_state["registros"]),
-    height=760,
-    scrolling=True,
-)
+with aba_banco_horas:
+    st.subheader("Filtros")
+
+    mes_atual_indice = date.today().month - 1
+    filtro_col1, filtro_col2, filtro_col3, filtro_col4, filtro_col5 = st.columns(5)
+
+    with filtro_col1:
+        st.selectbox("Mes", MESES, index=mes_atual_indice, key="mes")
+    with filtro_col2:
+        st.selectbox("Nome do servidor", SERVIDORES, key="servidor")
+    with filtro_col3:
+        st.text_input(
+            "Saldo ultimo mes",
+            key="saldo_ultimo_mes",
+            max_chars=6,
+            placeholder="HHH:MM",
+            on_change=aplicar_mascara_hhmm,
+            args=("saldo_ultimo_mes",),
+        )
+    with filtro_col4:
+        st.text_input(
+            "Expiram esse mes",
+            key="expiram_mes",
+            max_chars=6,
+            placeholder="HHH:MM",
+            on_change=aplicar_mascara_hhmm,
+            args=("expiram_mes",),
+        )
+    with filtro_col5:
+        st.text_input(
+            "Saldo de horas",
+            key="saldo_horas",
+            max_chars=6,
+            placeholder="HHH:MM",
+            on_change=aplicar_mascara_hhmm,
+            args=("saldo_horas",),
+        )
+
+    saldo_ultimo_mes = st.session_state["saldo_ultimo_mes"]
+    saldo_horas = st.session_state["saldo_horas"]
+    expiram_mes = st.session_state["expiram_mes"]
+
+    if saldo_ultimo_mes and not eh_hhmm_valido(saldo_ultimo_mes):
+        st.warning("Preencha o saldo ultimo mes no formato HH:MM ou HHH:MM.")
+
+    if saldo_horas and not eh_hhmm_valido(saldo_horas):
+        st.warning("Preencha o saldo de horas no formato HH:MM ou HHH:MM.")
+
+    if expiram_mes and not eh_hhmm_valido(expiram_mes):
+        st.warning("Preencha as horas que expiram no formato HH:MM ou HHH:MM.")
+
+    st.button("Adicionar", type="primary", on_click=adicionar_registro)
+
+    if st.session_state["mensagem_erro"]:
+        st.error(st.session_state["mensagem_erro"])
+
+    if st.session_state["mensagem_sucesso"]:
+        st.success(st.session_state["mensagem_sucesso"])
+
+    st.divider()
+
+    st.subheader("Tabela")
+
+    df = pd.DataFrame(st.session_state["registros"], columns=COLUNAS_TABELA)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+    if st.session_state["registros"]:
+        opcoes_remocao = [
+            f"{indice + 1} - {registro['Servidor']}"
+            for indice, registro in enumerate(st.session_state["registros"])
+        ]
+        indice_remocao = st.selectbox(
+            "Linha para remover",
+            range(len(opcoes_remocao)),
+            format_func=opcoes_remocao.__getitem__,
+        )
+        st.button(
+            "Remover linha selecionada",
+            on_click=remover_registro,
+            args=(indice_remocao,),
+        )
+
+    csv = df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "Baixar CSV",
+        data=csv,
+        file_name="banco_de_horas.csv",
+        mime="text/csv",
+    )
+
+    st.subheader("Relatorio para impressao")
+    components.html(
+        gerar_html_relatorio(st.session_state["registros"]),
+        height=760,
+        scrolling=True,
+    )
+
+with aba_mapa_plantao:
+    st.subheader("Mapa de Plantao")
+    st.info("Aba criada para a proxima implementacao.")

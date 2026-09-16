@@ -470,11 +470,13 @@ with aba_mapa_plantao:
     mapa_col1, mapa_col2 = st.columns(2)
 
     with mapa_col1:
-        st.date_input("Data inicial", key="data_inicial_mapa_plantao_col1")
-        st.date_input("Data final", key="data_final_mapa_plantao_col1")
+        with st.container(border=True):
+            st.date_input("Data inicial", key="data_inicial_mapa_plantao_col1")
+            st.date_input("Data final", key="data_final_mapa_plantao_col1")
 
     with mapa_col2:
-        st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
-        st.date_input("Data final", key="data_final_mapa_plantao_col2")
+        with st.container(border=True):
+            st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
+            st.date_input("Data final", key="data_final_mapa_plantao_col2")
 
     st.info("Aba criada para a proxima implementacao.")

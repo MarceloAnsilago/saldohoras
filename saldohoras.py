@@ -480,12 +480,12 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
             f"""
             <tr>
                 <td class="server-name">{escape(mapa["Servidor"])}</td>
-                <td>
+                <td class="days-cell">
                     <div class="days-grid">
                         {dias_trabalho}
                     </div>
                 </td>
-                <td>
+                <td class="days-cell">
                     <div class="days-grid">
                         {dias_folga}
                     </div>
@@ -644,6 +644,11 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 display: flex;
                 flex-wrap: wrap;
                 gap: 4px;
+                justify-content: center;
+            }}
+
+            .days-cell {{
+                text-align: center;
             }}
 
             .square {{

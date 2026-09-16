@@ -363,11 +363,13 @@ def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
     equipe = st.session_state["equipe_mapa_plantao"]
     periodos = [
         (
+            1,
             st.session_state["data_inicial_mapa_plantao_col1"],
             st.session_state["data_final_mapa_plantao_col1"],
             equipe_trabalha_no_periodo(equipe, 1),
         ),
         (
+            2,
             st.session_state["data_inicial_mapa_plantao_col2"],
             st.session_state["data_final_mapa_plantao_col2"],
             equipe_trabalha_no_periodo(equipe, 2),
@@ -375,13 +377,16 @@ def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
     ]
 
     dias_por_data = {}
-    for inicio, fim, trabalha in periodos:
+    for periodo, inicio, fim, trabalha in periodos:
         for dia in listar_datas(inicio, fim):
-            dias_por_data[dia.isoformat()] = trabalha
+            dias_por_data[dia.isoformat()] = {
+                "Periodo": periodo,
+                "Trabalha": trabalha,
+            }
 
     return [
-        {"Data": data, "Trabalha": trabalha}
-        for data, trabalha in sorted(dias_por_data.items())
+        {"Data": data, **informacoes}
+        for data, informacoes in sorted(dias_por_data.items())
     ]
 
 
@@ -447,6 +452,8 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
         for dia in mapa["Dias"]:
             data_formatada = str(date.fromisoformat(dia["Data"]).day)
             classe_quadrado = "square filled" if dia["Trabalha"] else "square"
+            if dia.get("Periodo") == 2:
+                classe_quadrado += " second-period"
             dias.append(
                 f"""
                 <span class="{classe_quadrado}">{escape(data_formatada)}</span>
@@ -479,7 +486,7 @@ def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]
                     <thead>
                         <tr>
                             <th>Servidor</th>
-                            <th>Dias de Descanso</th>
+                            <th>Trabalha / Folga</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -632,6 +639,14 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 padding: 0 6px;
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
+            }}
+
+            .square.second-period {{
+                margin-left: 14px;
+            }}
+
+            .square.second-period ~ .square.second-period {{
+                margin-left: 0;
             }}
 
             .square.filled {{

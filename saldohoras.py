@@ -465,4 +465,5 @@ with aba_banco_horas:
 
 with aba_mapa_plantao:
     st.subheader("Mapa de Plantao")
+    st.selectbox("Nome do servidor", SERVIDORES, key="servidor_mapa_plantao")
     st.info("Aba criada para a proxima implementacao.")

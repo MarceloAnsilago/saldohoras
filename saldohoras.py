@@ -857,12 +857,6 @@ with aba_banco_horas:
 
 with aba_mapa_plantao:
     st.subheader("Mapa de Plantao")
-    st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
-    st.selectbox("Nome do servidor", SERVIDORES, key="servidor_mapa_plantao")
-    if st.session_state["equipe_mapa_plantao"] == "Equipe 1":
-        st.caption("Primeiro periodo: trabalha | Segundo periodo: folga")
-    else:
-        st.caption("Primeiro periodo: folga | Segundo periodo: trabalha")
 
     mapa_col1, mapa_col2 = st.columns(2)
 
@@ -877,6 +871,13 @@ with aba_mapa_plantao:
             st.markdown("**Segundo periodo**")
             st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
             st.date_input("Data final", key="data_final_mapa_plantao_col2")
+
+    st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
+    st.selectbox("Nome do servidor", SERVIDORES, key="servidor_mapa_plantao")
+    if st.session_state["equipe_mapa_plantao"] == "Equipe 1":
+        st.caption("Primeiro periodo: trabalha | Segundo periodo: folga")
+    else:
+        st.caption("Primeiro periodo: folga | Segundo periodo: trabalha")
 
     st.button(
         "Adicionar",

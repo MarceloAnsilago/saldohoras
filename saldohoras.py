@@ -479,4 +479,6 @@ with aba_mapa_plantao:
             st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
             st.date_input("Data final", key="data_final_mapa_plantao_col2")
 
+    st.button("Adicionar", type="primary", key="adicionar_mapa_plantao")
+
     st.info("Aba criada para a proxima implementacao.")

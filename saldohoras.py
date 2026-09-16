@@ -33,7 +33,14 @@ SERVIDORES = [
     "ROBSON TEOFILO VARGAS",
     "THIAGO DE OLIVEIRA ALVES",
 ]
-COLUNAS_TABELA = ["Servidor", "Saldo ultimo mes", "Saldo de horas", "Expiram esse mes"]
+EQUIPES = ["Equipe 1", "Equipe 2"]
+COLUNAS_TABELA = [
+    "Equipe",
+    "Servidor",
+    "Saldo ultimo mes",
+    "Saldo de horas",
+    "Expiram esse mes",
+]
 
 
 def aplicar_mascara_hhmm(chave: str) -> None:
@@ -85,6 +92,7 @@ def legenda_folga_sem_ponto(registro: dict[str, str]) -> str:
 
 def montar_registro() -> dict[str, str]:
     return {
+        "Equipe": st.session_state["equipe"],
         "Servidor": st.session_state["servidor"],
         "Saldo ultimo mes": st.session_state["saldo_ultimo_mes"],
         "Saldo de horas": st.session_state["saldo_horas"],
@@ -126,16 +134,27 @@ def remover_registro(indice: int) -> None:
         st.session_state["mensagem_sucesso"] = "Registro removido."
 
 
+def normalizar_registro(registro: dict[str, str]) -> dict[str, str]:
+    return {
+        "Equipe": registro.get("Equipe", "Equipe 1"),
+        "Servidor": registro.get("Servidor", ""),
+        "Saldo ultimo mes": registro.get("Saldo ultimo mes", ""),
+        "Saldo de horas": registro.get("Saldo de horas", ""),
+        "Expiram esse mes": registro.get("Expiram esse mes", ""),
+    }
+
+
 def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     if not registros:
         return """
             <tr>
-                <td colspan="5" class="empty">Nenhum registro adicionado.</td>
+                <td colspan="5" class="empty">Nenhum registro adicionado nesta equipe.</td>
             </tr>
         """
 
     linhas = []
     for registro in registros:
+        registro = normalizar_registro(registro)
         linhas.append(
             f"""
             <tr>
@@ -150,8 +169,43 @@ def gerar_linhas_relatorio(registros: list[dict[str, str]]) -> str:
     return "\n".join(linhas)
 
 
-def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
+def gerar_tabela_equipe_relatorio(equipe: str, registros: list[dict[str, str]]) -> str:
     linhas = gerar_linhas_relatorio(registros)
+    return f"""
+        <section class="team-section">
+            <h2>{escape(equipe)}</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Servidor</th>
+                            <th>Saldo ultimo mes</th>
+                            <th>Saldo de horas</th>
+                            <th>Expiram esse mes</th>
+                            <th>Legenda</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {linhas}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    """
+
+
+def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
+    tabelas = "\n".join(
+        gerar_tabela_equipe_relatorio(
+            equipe,
+            [
+                registro
+                for registro in registros
+                if normalizar_registro(registro)["Equipe"] == equipe
+            ],
+        )
+        for equipe in EQUIPES
+    )
     mes = escape(st.session_state["mes"])
     return f"""
     <!doctype html>
@@ -247,7 +301,13 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
             }}
 
             .table-wrap {{
-                padding: 24px;
+                padding: 0 24px 24px;
+            }}
+
+            .team-section h2 {{
+                color: #111827;
+                font-size: 18px;
+                margin: 22px 24px 10px;
             }}
 
             table {{
@@ -324,22 +384,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                     </span>
                     Tabela Banco de Horas - {mes}
                 </header>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Servidor</th>
-                                <th>Saldo ultimo mes</th>
-                                <th>Saldo de horas</th>
-                                <th>Expiram esse mes</th>
-                                <th>Legenda</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {linhas}
-                        </tbody>
-                    </table>
-                </div>
+                {tabelas}
             </section>
         </main>
     </body>
@@ -638,6 +683,7 @@ for chave_hora in ("saldo_ultimo_mes", "saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
 st.session_state.setdefault("registros", [])
+st.session_state.setdefault("equipe", EQUIPES[0])
 st.session_state.setdefault("mensagem_erro", "")
 st.session_state.setdefault("mensagem_sucesso", "")
 st.session_state.setdefault("mapas_plantao", [])
@@ -708,6 +754,7 @@ with aba_banco_horas:
     if expiram_mes and not eh_hhmm_valido(expiram_mes):
         st.warning("Preencha as horas que expiram no formato HH:MM ou HHH:MM.")
 
+    st.selectbox("Equipe", EQUIPES, key="equipe")
     st.button("Adicionar", type="primary", on_click=adicionar_registro)
 
     if st.session_state["mensagem_erro"]:
@@ -720,12 +767,22 @@ with aba_banco_horas:
 
     st.subheader("Tabela")
 
-    df = pd.DataFrame(st.session_state["registros"], columns=COLUNAS_TABELA)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    registros_normalizados = [
+        normalizar_registro(registro) for registro in st.session_state["registros"]
+    ]
+    df = pd.DataFrame(registros_normalizados, columns=COLUNAS_TABELA)
+
+    for equipe in EQUIPES:
+        st.markdown(f"**{equipe}**")
+        df_equipe = df[df["Equipe"] == equipe].drop(columns=["Equipe"])
+        st.dataframe(df_equipe, use_container_width=True, hide_index=True)
 
     if st.session_state["registros"]:
         opcoes_remocao = [
-            f"{indice + 1} - {registro['Servidor']}"
+            (
+                f"{indice + 1} - {normalizar_registro(registro)['Equipe']} - "
+                f"{normalizar_registro(registro)['Servidor']}"
+            )
             for indice, registro in enumerate(st.session_state["registros"])
         ]
         indice_remocao = st.selectbox(

@@ -402,6 +402,13 @@ def adicionar_mapa_plantao() -> None:
     st.session_state["mensagem_sucesso_mapa_plantao"] = "Mapa adicionado."
 
 
+def remover_mapa_plantao(indice: int) -> None:
+    if 0 <= indice < len(st.session_state["mapas_plantao"]):
+        st.session_state["mapas_plantao"].pop(indice)
+        st.session_state["mensagem_erro_mapa_plantao"] = ""
+        st.session_state["mensagem_sucesso_mapa_plantao"] = "Mapa removido."
+
+
 def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     if not mapas:
         return """
@@ -787,6 +794,24 @@ with aba_mapa_plantao:
 
     if st.session_state["mensagem_sucesso_mapa_plantao"]:
         st.success(st.session_state["mensagem_sucesso_mapa_plantao"])
+
+    if st.session_state["mapas_plantao"]:
+        opcoes_remocao_mapa = [
+            f"{indice + 1} - {mapa['Servidor']}"
+            for indice, mapa in enumerate(st.session_state["mapas_plantao"])
+        ]
+        indice_remocao_mapa = st.selectbox(
+            "Mapa para remover",
+            range(len(opcoes_remocao_mapa)),
+            format_func=opcoes_remocao_mapa.__getitem__,
+            key="indice_remocao_mapa_plantao",
+        )
+        st.button(
+            "Remover mapa selecionado",
+            on_click=remover_mapa_plantao,
+            args=(indice_remocao_mapa,),
+            key="remover_mapa_plantao",
+        )
 
     st.divider()
 

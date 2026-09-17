@@ -596,7 +596,12 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
             }}
 
             .report-title {{
-                display: none;
+                background: #ffffff;
+                color: #000000;
+                font-size: 20px;
+                font-weight: 700;
+                padding: 10px 0 14px;
+                text-align: center;
             }}
 
             .table-wrap {{
@@ -732,7 +737,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
         </div>
         <main class="sheet">
             <section class="report-card">
-                <header class="report-title">Mapa de Plantao</header>
+                <header class="report-title">Escala de plantão de fim de ano</header>
                 {tabelas}
             </section>
         </main>

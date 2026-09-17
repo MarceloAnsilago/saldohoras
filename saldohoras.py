@@ -873,14 +873,20 @@ with aba_mapa_plantao:
     with mapa_col1:
         with st.container(border=True):
             st.markdown("**Primeiro periodo**")
-            st.date_input("Data inicial", key="data_inicial_mapa_plantao_col1")
-            st.date_input("Data final", key="data_final_mapa_plantao_col1")
+            periodo_1_col1, periodo_1_col2 = st.columns(2)
+            with periodo_1_col1:
+                st.date_input("Data inicial", key="data_inicial_mapa_plantao_col1")
+            with periodo_1_col2:
+                st.date_input("Data final", key="data_final_mapa_plantao_col1")
 
     with mapa_col2:
         with st.container(border=True):
             st.markdown("**Segundo periodo**")
-            st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
-            st.date_input("Data final", key="data_final_mapa_plantao_col2")
+            periodo_2_col1, periodo_2_col2 = st.columns(2)
+            with periodo_2_col1:
+                st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
+            with periodo_2_col2:
+                st.date_input("Data final", key="data_final_mapa_plantao_col2")
 
     st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
     st.selectbox("Nome do servidor", SERVIDORES, key="servidor_mapa_plantao")

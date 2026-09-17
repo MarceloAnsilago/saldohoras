@@ -462,6 +462,13 @@ def gerar_quadrados_mapa_plantao(dias_mapa: list[dict[str, object]], trabalha: b
     return "\n".join(dias)
 
 
+def periodo_dos_quadrados(dias_mapa: list[dict[str, object]], trabalha: bool) -> str:
+    for dia in dias_mapa:
+        if dia["Trabalha"] == trabalha:
+            return f"period-{dia.get('Periodo', 1)}"
+    return "period-1"
+
+
 def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     if not mapas:
         return """
@@ -475,18 +482,20 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
         mapa = normalizar_mapa_plantao(mapa)
         dias_trabalho = gerar_quadrados_mapa_plantao(mapa["Dias"], True)
         dias_folga = gerar_quadrados_mapa_plantao(mapa["Dias"], False)
+        periodo_trabalho = periodo_dos_quadrados(mapa["Dias"], True)
+        periodo_folga = periodo_dos_quadrados(mapa["Dias"], False)
 
         linhas.append(
             f"""
             <tr>
                 <td class="server-name">{escape(mapa["Servidor"])}</td>
                 <td class="days-cell">
-                    <div class="days-grid">
+                    <div class="days-grid {periodo_trabalho}">
                         {dias_trabalho}
                     </div>
                 </td>
                 <td class="days-cell">
-                    <div class="days-grid">
+                    <div class="days-grid {periodo_folga}">
                         {dias_folga}
                     </div>
                 </td>
@@ -645,6 +654,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 flex-wrap: wrap;
                 gap: 4px;
                 justify-content: center;
+                width: 100%;
             }}
 
             .days-cell {{

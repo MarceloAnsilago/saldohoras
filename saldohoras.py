@@ -437,22 +437,15 @@ def normalizar_mapa_plantao(mapa: dict[str, object]) -> dict[str, object]:
     }
 
 
-def gerar_quadrados_mapa_plantao(dias_mapa: list[dict[str, object]], trabalha: bool) -> str:
+def gerar_quadrados_mapa_plantao(dias_mapa: list[dict[str, object]], periodo: int) -> str:
     dias = []
-    periodo_anterior = None
 
     for dia in dias_mapa:
-        if dia["Trabalha"] != trabalha:
+        if dia.get("Periodo") != periodo:
             continue
 
         data_formatada = str(date.fromisoformat(dia["Data"]).day)
-        classe_quadrado = "square filled" if trabalha else "square"
-        periodo = dia.get("Periodo")
-
-        if periodo_anterior is not None and periodo != periodo_anterior:
-            classe_quadrado += " second-period"
-
-        periodo_anterior = periodo
+        classe_quadrado = "square filled" if dia["Trabalha"] else "square"
         dias.append(
             f"""
             <span class="{classe_quadrado}">{escape(data_formatada)}</span>
@@ -460,13 +453,6 @@ def gerar_quadrados_mapa_plantao(dias_mapa: list[dict[str, object]], trabalha: b
         )
 
     return "\n".join(dias)
-
-
-def periodo_dos_quadrados(dias_mapa: list[dict[str, object]], trabalha: bool) -> str:
-    for dia in dias_mapa:
-        if dia["Trabalha"] == trabalha:
-            return f"period-{dia.get('Periodo', 1)}"
-    return "period-1"
 
 
 def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
@@ -480,23 +466,21 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     linhas = []
     for mapa in mapas:
         mapa = normalizar_mapa_plantao(mapa)
-        dias_trabalho = gerar_quadrados_mapa_plantao(mapa["Dias"], True)
-        dias_folga = gerar_quadrados_mapa_plantao(mapa["Dias"], False)
-        periodo_trabalho = periodo_dos_quadrados(mapa["Dias"], True)
-        periodo_folga = periodo_dos_quadrados(mapa["Dias"], False)
+        dias_primeiro_periodo = gerar_quadrados_mapa_plantao(mapa["Dias"], 1)
+        dias_segundo_periodo = gerar_quadrados_mapa_plantao(mapa["Dias"], 2)
 
         linhas.append(
             f"""
             <tr>
                 <td class="server-name">{escape(mapa["Servidor"])}</td>
                 <td class="days-cell">
-                    <div class="days-grid {periodo_trabalho}">
-                        {dias_trabalho}
+                    <div class="days-grid">
+                        {dias_primeiro_periodo}
                     </div>
                 </td>
                 <td class="days-cell">
-                    <div class="days-grid {periodo_folga}">
-                        {dias_folga}
+                    <div class="days-grid">
+                        {dias_segundo_periodo}
                     </div>
                 </td>
             </tr>
@@ -516,8 +500,8 @@ def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]
                     <thead>
                         <tr>
                             <th>Servidor</th>
-                            <th>Trabalha</th>
-                            <th>Folga</th>
+                            <th>Primeiro periodo</th>
+                            <th>Segundo periodo</th>
                         </tr>
                     </thead>
                     <tbody>

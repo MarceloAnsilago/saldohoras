@@ -390,6 +390,13 @@ def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
     ]
 
 
+def servidor_ja_adicionado_mapa_plantao(servidor: str) -> bool:
+    return any(
+        normalizar_mapa_plantao(mapa)["Servidor"] == servidor
+        for mapa in st.session_state["mapas_plantao"]
+    )
+
+
 def adicionar_mapa_plantao() -> None:
     servidor = st.session_state["servidor_mapa_plantao"]
     data_inicial_col1 = st.session_state["data_inicial_mapa_plantao_col1"]
@@ -399,6 +406,12 @@ def adicionar_mapa_plantao() -> None:
 
     if servidor == "Selecione":
         st.session_state["mensagem_erro_mapa_plantao"] = "Selecione o nome do servidor."
+        return
+
+    if servidor_ja_adicionado_mapa_plantao(servidor):
+        st.session_state["mensagem_erro_mapa_plantao"] = (
+            "Este servidor ja foi adicionado ao mapa de plantao."
+        )
         return
 
     if data_final_col1 < data_inicial_col1 or data_final_col2 < data_inicial_col2:

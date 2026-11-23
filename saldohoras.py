@@ -501,7 +501,7 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     if not mapas:
         return """
             <tr>
-                <td colspan="3" class="empty">Nenhum mapa adicionado nesta equipe.</td>
+                <td colspan="4" class="empty">Nenhum mapa adicionado nesta equipe.</td>
             </tr>
         """
 
@@ -525,6 +525,7 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                         {dias_segundo_periodo}
                     </div>
                 </td>
+                <td class="signature-cell"><div class="signature-line"></div></td>
             </tr>
             """
         )
@@ -557,6 +558,7 @@ def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]
                             <th>Servidor</th>
                             <th>{primeiro_periodo}</th>
                             <th>{segundo_periodo}</th>
+                            <th class="signature-heading">Ciência</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -703,6 +705,20 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
 
             .days-cell {{
                 text-align: center;
+            }}
+
+            .signature-heading {{
+                width: 24%;
+            }}
+
+            .signature-cell {{
+                padding: 4px 12px 8px;
+                vertical-align: bottom;
+            }}
+
+            .signature-line {{
+                border-bottom: 1px solid #4b5563;
+                height: 24px;
             }}
 
             .square {{

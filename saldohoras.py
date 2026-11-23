@@ -820,6 +820,84 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
     """
 
 
+def gerar_html_checklist_recesso() -> str:
+    linhas = "\n".join(
+        f"""
+        <tr>
+            <th scope="row">{escape(servidor)}</th>
+            <td><span class="quadrado"></span></td>
+            <td><span class="quadrado"></span></td>
+            <td><span class="quadrado"></span></td>
+        </tr>
+        """
+        for servidor in SERVIDORES
+        if servidor != "Selecione"
+    )
+    return f"""
+    <!doctype html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <title>Recesso Administrativo 2026</title>
+        <style>
+            @page {{ size: A4 portrait; margin: 14mm; }}
+            * {{ box-sizing: border-box; }}
+            body {{ margin: 0; color: #111827; font: 14px/1.4 "Segoe UI", Arial, sans-serif; }}
+            main {{ max-width: 182mm; margin: 0 auto; padding: 12px; }}
+            h1 {{ margin: 0; font-size: 23px; }}
+            .subtitulo {{ margin: 2px 0 14px; font-size: 16px; }}
+            p {{ margin: 8px 0; }}
+            table {{ width: 100%; border-collapse: collapse; margin: 12px 0; }}
+            th, td {{ border: 1px solid #9ca3af; padding: 5px 8px; }}
+            thead th {{ background: #e5e7eb; }}
+            th:first-child {{ text-align: left; }}
+            tbody th {{ font-weight: 400; }}
+            td {{ text-align: center; }}
+            tbody tr {{ break-inside: avoid; }}
+            .quadrado {{ display: inline-block; width: 13px; height: 13px; border: 1px solid; vertical-align: middle; }}
+            .acoes {{ margin-bottom: 12px; }}
+            .acoes button {{ padding: 6px 12px; cursor: pointer; }}
+            @media print {{
+                .acoes {{ display: none; }}
+                main {{ max-width: none; padding: 0; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <main>
+            <div class="acoes"><button type="button" onclick="window.print()">Imprimir checklist</button></div>
+            <h1>RECESSO ADMINISTRATIVO 2026</h1>
+            <p class="subtitulo">Consulta de preferência dos servidores e estagiários</p>
+            <p>Referência: Memorando nº 816/2026/IDARON-DIPES</p>
+            <p>
+                <strong>1º período:</strong> 21 a 25 de dezembro de 2026<br>
+                <strong>2º período:</strong> 28 de dezembro de 2026 a 1º de janeiro de 2027
+            </p>
+            <p>Assinale uma opção por pessoa. “Tanto faz” indica ausência de preferência.</p>
+            <p>
+                Não havendo consenso quanto à divisão, a chefia imediata estabelecerá a escala
+                conforme a necessidade e a conveniência do serviço, assegurando o atendimento
+                da unidade. O levantamento de preferências não constitui garantia de escolha do período.
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">SERVIDOR(A) / ESTAGIÁRIO(A)</th>
+                        <th scope="col">1º período</th>
+                        <th scope="col">2º período</th>
+                        <th scope="col">Tanto faz</th>
+                    </tr>
+                </thead>
+                <tbody>{linhas}</tbody>
+            </table>
+            <p><strong>Prazo de encaminhamento:</strong> 07 de dezembro de 2026.</p>
+            <p>Formulário consultivo. A escala oficial será definida pela chefia imediata.</p>
+        </main>
+    </body>
+    </html>
+    """
+
+
 for chave_hora in ("saldo_ultimo_mes", "saldo_horas", "expiram_mes"):
     st.session_state.setdefault(chave_hora, "00:00")
 
@@ -840,8 +918,8 @@ st.set_page_config(
 
 st.title("Tabela Banco de Horas")
 
-aba_banco_horas, aba_mapa_plantao = st.tabs(
-    ["Tabela Banco de Horas", "Mapa de Plantao"]
+aba_banco_horas, aba_mapa_plantao, aba_recesso = st.tabs(
+    ["Tabela Banco de Horas", "Mapa de Plantao", "Checklist de Recesso"]
 )
 
 with aba_banco_horas:
@@ -1016,3 +1094,6 @@ with aba_mapa_plantao:
         height=760,
         scrolling=True,
     )
+
+with aba_recesso:
+    components.html(gerar_html_checklist_recesso(), height=820, scrolling=True)

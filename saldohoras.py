@@ -555,9 +555,9 @@ def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]
                 <table>
                     <thead>
                         <tr>
-                            <th>Servidor</th>
-                            <th>{primeiro_periodo}</th>
-                            <th>{segundo_periodo}</th>
+                            <th class="server-heading">Servidor</th>
+                            <th class="period-heading">{primeiro_periodo}</th>
+                            <th class="period-heading">{segundo_periodo}</th>
                             <th class="signature-heading">Ciência</th>
                         </tr>
                     </thead>
@@ -670,6 +670,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 border-collapse: collapse;
                 background: #ffffff;
                 font-size: 14px;
+                table-layout: fixed;
                 width: 100%;
             }}
 
@@ -690,25 +691,28 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 vertical-align: middle;
             }}
 
+            .server-heading, .signature-heading {{
+                width: 24%;
+            }}
+
+            .period-heading {{
+                width: 26%;
+            }}
+
             .server-name {{
-                font-weight: 400;
-                width: 350px;
+                overflow-wrap: anywhere;
             }}
 
             .days-grid {{
                 display: flex;
                 flex-wrap: wrap;
-                gap: 4px;
+                gap: 3px;
                 justify-content: center;
                 width: 100%;
             }}
 
             .days-cell {{
                 text-align: center;
-            }}
-
-            .signature-heading {{
-                width: 24%;
             }}
 
             .signature-cell {{
@@ -729,11 +733,10 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 color: #4b5563;
                 display: inline-flex;
                 font-size: 12px;
-                height: 25px;
+                height: 22px;
                 justify-content: center;
                 line-height: 1;
-                min-width: 24px;
-                padding: 0 6px;
+                width: 22px;
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
             }}

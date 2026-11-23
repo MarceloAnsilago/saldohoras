@@ -361,25 +361,13 @@ def equipe_trabalha_no_periodo(equipe: str, periodo: int) -> bool:
     )
 
 
-def montar_dias_mapa_plantao() -> list[dict[str, str | bool]]:
+def montar_dias_mapa_plantao(
+    intervalos: tuple[tuple[date, date], tuple[date, date]],
+) -> list[dict[str, str | bool]]:
     equipe = st.session_state["equipe_mapa_plantao"]
-    periodos = [
-        (
-            1,
-            st.session_state["data_inicial_mapa_plantao_col1"],
-            st.session_state["data_final_mapa_plantao_col1"],
-            equipe_trabalha_no_periodo(equipe, 1),
-        ),
-        (
-            2,
-            st.session_state["data_inicial_mapa_plantao_col2"],
-            st.session_state["data_final_mapa_plantao_col2"],
-            equipe_trabalha_no_periodo(equipe, 2),
-        ),
-    ]
-
     dias_por_data = {}
-    for periodo, inicio, fim, trabalha in periodos:
+    for periodo, (inicio, fim) in enumerate(intervalos, start=1):
+        trabalha = equipe_trabalha_no_periodo(equipe, periodo)
         for dia in listar_datas(inicio, fim):
             dias_por_data[dia.isoformat()] = {
                 "Periodo": periodo,
@@ -399,12 +387,12 @@ def servidor_ja_adicionado_mapa_plantao(servidor: str) -> bool:
     )
 
 
-def adicionar_mapa_plantao() -> None:
+def adicionar_mapa_plantao(
+    primeiro_periodo: tuple[date, date], segundo_periodo: tuple[date, date]
+) -> None:
     servidor = st.session_state["servidor_mapa_plantao"]
-    data_inicial_col1 = st.session_state["data_inicial_mapa_plantao_col1"]
-    data_final_col1 = st.session_state["data_final_mapa_plantao_col1"]
-    data_inicial_col2 = st.session_state["data_inicial_mapa_plantao_col2"]
-    data_final_col2 = st.session_state["data_final_mapa_plantao_col2"]
+    data_inicial_col1, data_final_col1 = primeiro_periodo
+    data_inicial_col2, data_final_col2 = segundo_periodo
 
     if servidor == "Selecione":
         st.session_state["mensagem_erro_mapa_plantao"] = "Selecione o nome do servidor."
@@ -430,11 +418,49 @@ def adicionar_mapa_plantao() -> None:
         {
             "Equipe": st.session_state["equipe_mapa_plantao"],
             "Servidor": servidor,
-            "Dias": montar_dias_mapa_plantao(),
+            "Dias": montar_dias_mapa_plantao((primeiro_periodo, segundo_periodo)),
         }
     )
     st.session_state["mensagem_erro_mapa_plantao"] = ""
     st.session_state["mensagem_sucesso_mapa_plantao"] = "Mapa adicionado."
+
+
+def selecionar_semana_plantao(periodo: int) -> tuple[date, date]:
+    hoje = date.today()
+    referencia = hoje + timedelta(weeks=periodo - 1)
+    meses = [
+        date(ano, mes, 1)
+        for ano in range(hoje.year - 10, hoje.year + 11)
+        for mes in range(1, 13)
+    ]
+    coluna_mes, coluna_semana = st.columns(2)
+    mes = coluna_mes.selectbox(
+        "Selecione o mês",
+        meses,
+        index=meses.index(referencia.replace(day=1)),
+        format_func=lambda mes: f"{MESES[mes.month - 1]} / {mes.year}",
+        key=f"mes_plantao_{periodo}",
+    )
+    primeira_segunda = mes - timedelta(days=mes.weekday())
+    mes_seguinte = (mes + timedelta(days=31)).replace(day=1)
+    semanas = [
+        (segunda, segunda + timedelta(days=6))
+        for segunda in (
+            primeira_segunda + timedelta(weeks=indice) for indice in range(6)
+        )
+        if segunda < mes_seguinte
+    ]
+    semana_padrao = next(
+        (indice for indice, (inicio, fim) in enumerate(semanas) if inicio <= referencia <= fim),
+        0,
+    )
+    return coluna_semana.selectbox(
+        "Selecione a semana",
+        semanas,
+        index=semana_padrao,
+        format_func=lambda semana: f"{semana[0]:%d/%m/%Y} a {semana[1]:%d/%m/%Y}",
+        key=f"semana_plantao_{periodo}_{mes:%Y_%m}",
+    )
 
 
 def remover_mapa_plantao(indice: int) -> None:
@@ -880,25 +906,31 @@ with aba_banco_horas:
 with aba_mapa_plantao:
     st.subheader("Mapa de Plantao")
 
-    mapa_col1, mapa_col2 = st.columns(2)
+    aba_datas, aba_semanas = st.tabs(
+        ["Por datas", "Por semana"], key="modo_periodos_plantao", on_change="rerun"
+    )
+    titulos_periodos = ("Primeiro período", "Segundo período")
 
-    with mapa_col1:
-        with st.container(border=True):
-            st.markdown("**Primeiro periodo**")
-            periodo_1_col1, periodo_1_col2 = st.columns(2)
-            with periodo_1_col1:
-                st.date_input("Data inicial", key="data_inicial_mapa_plantao_col1")
-            with periodo_1_col2:
-                st.date_input("Data final", key="data_final_mapa_plantao_col1")
+    with aba_datas:
+        periodos_por_datas = []
+        for periodo, (coluna, titulo) in enumerate(zip(st.columns(2), titulos_periodos), start=1):
+            with coluna.container(border=True):
+                st.markdown(f"**{titulo}**")
+                coluna_inicio, coluna_fim = st.columns(2)
+                inicio = coluna_inicio.date_input(
+                    "Data inicial", key=f"data_inicial_mapa_plantao_col{periodo}"
+                )
+                fim = coluna_fim.date_input(
+                    "Data final", key=f"data_final_mapa_plantao_col{periodo}"
+                )
+                periodos_por_datas.append((inicio, fim))
 
-    with mapa_col2:
-        with st.container(border=True):
-            st.markdown("**Segundo periodo**")
-            periodo_2_col1, periodo_2_col2 = st.columns(2)
-            with periodo_2_col1:
-                st.date_input("Data inicial", key="data_inicial_mapa_plantao_col2")
-            with periodo_2_col2:
-                st.date_input("Data final", key="data_final_mapa_plantao_col2")
+    with aba_semanas:
+        periodos_por_semana = []
+        for periodo, (coluna, titulo) in enumerate(zip(st.columns(2), titulos_periodos), start=1):
+            with coluna.container(border=True):
+                st.markdown(f"**{titulo}**")
+                periodos_por_semana.append(selecionar_semana_plantao(periodo))
 
     st.selectbox("Equipe", EQUIPES, key="equipe_mapa_plantao")
     st.selectbox("Nome do servidor", SERVIDORES, key="servidor_mapa_plantao")
@@ -907,12 +939,9 @@ with aba_mapa_plantao:
     else:
         st.caption("Primeiro periodo: folga | Segundo periodo: trabalha")
 
-    st.button(
-        "Adicionar",
-        type="primary",
-        key="adicionar_mapa_plantao",
-        on_click=adicionar_mapa_plantao,
-    )
+    if st.button("Adicionar", type="primary", key="adicionar_mapa_plantao"):
+        periodos = periodos_por_semana if aba_semanas.open else periodos_por_datas
+        adicionar_mapa_plantao(*periodos)
 
     if st.session_state["mensagem_erro_mapa_plantao"]:
         st.error(st.session_state["mensagem_erro_mapa_plantao"])

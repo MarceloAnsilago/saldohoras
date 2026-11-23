@@ -571,6 +571,19 @@ def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]
 
 
 def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
+    titulo = "Escala de plantão de fim de ano"
+    datas_por_periodo = {1: [], 2: []}
+    for mapa in mapas:
+        for dia in normalizar_mapa_plantao(mapa)["Dias"]:
+            periodo = dia.get("Periodo")
+            if periodo in datas_por_periodo:
+                datas_por_periodo[periodo].append(date.fromisoformat(dia["Data"]))
+
+    if datas_por_periodo[1] and datas_por_periodo[2]:
+        inicio = min(datas_por_periodo[1])
+        fim = max(datas_por_periodo[2])
+        titulo += f" - {inicio:%d/%m/%Y} a {fim:%d/%m/%Y}"
+
     tabelas = "\n".join(
         gerar_tabela_equipe_mapa_plantao(
             equipe,
@@ -798,7 +811,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
         </div>
         <main class="sheet">
             <section class="report-card">
-                <header class="report-title">Escala de plantão de fim de ano</header>
+                <header class="report-title">{titulo}</header>
                 {tabelas}
             </section>
         </main>

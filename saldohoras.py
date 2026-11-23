@@ -533,14 +533,19 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
 
 def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]) -> str:
     linhas = gerar_linhas_mapa_plantao(mapas)
-    periodos_trabalhados = {
-        dia.get("Periodo")
+    situacoes_periodos = {
+        (dia.get("Periodo"), bool(dia.get("Trabalha")))
         for mapa in mapas
         for dia in normalizar_mapa_plantao(mapa)["Dias"]
-        if dia.get("Trabalha")
     }
-    primeiro_periodo = "Primeiro período" + (" [Trabalha]" if 1 in periodos_trabalhados else "")
-    segundo_periodo = "Segundo período" + (" [Trabalha]" if 2 in periodos_trabalhados else "")
+    titulos = []
+    for periodo, titulo in enumerate(("Primeiro período", "Segundo período"), start=1):
+        if (periodo, True) in situacoes_periodos:
+            titulo += " [Trabalha]"
+        elif (periodo, False) in situacoes_periodos:
+            titulo += " [Folga]"
+        titulos.append(titulo)
+    primeiro_periodo, segundo_periodo = titulos
     return f"""
         <section class="team-section">
             <h2>{escape(equipe)}</h2>

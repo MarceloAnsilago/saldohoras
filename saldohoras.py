@@ -310,6 +310,7 @@ def gerar_html_relatorio(registros: list[dict[str, str]]) -> str:
                 @page {{
                     margin: 12mm;
                     size: A4 landscape;
+                    @top-center {{ content: ""; }}
                 }}
             }}
         </style>
@@ -801,6 +802,7 @@ def gerar_html_mapa_plantao(mapas: list[dict[str, object]]) -> str:
                 @page {{
                     margin: 12mm;
                     size: A4 landscape;
+                    @top-center {{ content: ""; }}
                 }}
             }}
         </style>
@@ -840,7 +842,11 @@ def gerar_html_checklist_recesso() -> str:
         <meta charset="utf-8">
         <title>Recesso Administrativo 2026</title>
         <style>
-            @page {{ size: A4 portrait; margin: 14mm; }}
+            @page {{
+                size: A4 portrait;
+                margin: 14mm;
+                @top-center {{ content: ""; }}
+            }}
             * {{ box-sizing: border-box; }}
             body {{ margin: 0; color: #111827; font: 14px/1.4 "Segoe UI", Arial, sans-serif; }}
             main {{ max-width: 182mm; margin: 0 auto; padding: 12px; }}
@@ -890,7 +896,6 @@ def gerar_html_checklist_recesso() -> str:
                 </thead>
                 <tbody>{linhas}</tbody>
             </table>
-            <p><strong>Prazo de encaminhamento:</strong> 07 de dezembro de 2026.</p>
             <p>Formulário consultivo. A escala oficial será definida pela chefia imediata.</p>
         </main>
     </body>

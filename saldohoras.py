@@ -923,8 +923,8 @@ st.set_page_config(
 
 st.title("Tabela Banco de Horas")
 
-aba_banco_horas, aba_mapa_plantao, aba_recesso = st.tabs(
-    ["Tabela Banco de Horas", "Mapa de Plantao", "Checklist de Recesso"]
+aba_banco_horas, aba_mapa_plantao = st.tabs(
+    ["Tabela Banco de Horas", "Mapa de Plantao"]
 )
 
 with aba_banco_horas:
@@ -1024,7 +1024,9 @@ with aba_banco_horas:
         scrolling=True,
     )
 
-with aba_mapa_plantao:
+aba_escala, aba_recesso = aba_mapa_plantao.tabs(["Escala", "Checklist de Recesso"])
+
+with aba_escala:
     st.subheader("Mapa de Plantao")
 
     aba_datas, aba_semanas = st.tabs(

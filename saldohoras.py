@@ -507,6 +507,14 @@ def gerar_linhas_mapa_plantao(mapas: list[dict[str, object]]) -> str:
 
 def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]) -> str:
     linhas = gerar_linhas_mapa_plantao(mapas)
+    periodos_trabalhados = {
+        dia.get("Periodo")
+        for mapa in mapas
+        for dia in normalizar_mapa_plantao(mapa)["Dias"]
+        if dia.get("Trabalha")
+    }
+    primeiro_periodo = "Primeiro período" + (" [Trabalha]" if 1 in periodos_trabalhados else "")
+    segundo_periodo = "Segundo período" + (" [Trabalha]" if 2 in periodos_trabalhados else "")
     return f"""
         <section class="team-section">
             <h2>{escape(equipe)}</h2>
@@ -515,8 +523,8 @@ def gerar_tabela_equipe_mapa_plantao(equipe: str, mapas: list[dict[str, object]]
                     <thead>
                         <tr>
                             <th>Servidor</th>
-                            <th>Primeiro periodo</th>
-                            <th>Segundo periodo</th>
+                            <th>{primeiro_periodo}</th>
+                            <th>{segundo_periodo}</th>
                         </tr>
                     </thead>
                     <tbody>
